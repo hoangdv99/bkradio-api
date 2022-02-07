@@ -17,6 +17,13 @@ express.response.sendStatus = function(statusCode) {
 const app = express()
 
 app.use(
+  cors({
+    origin: true,
+    credentials: true
+  })
+)
+
+app.use(
   (error, req, res, next) => {
     if (error) {
       return res.status(400).json({
