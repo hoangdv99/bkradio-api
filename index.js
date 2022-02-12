@@ -1,6 +1,5 @@
-const moduleAlias = (await import('module-alias')).default
-moduleAlias()
-
+import dotenv from 'dotenv'
+dotenv.config()
 import express from 'express'
 import cors from 'cors'
 import statuses from 'statuses'
@@ -21,6 +20,11 @@ app.use(
     origin: true,
     credentials: true
   })
+)
+
+app.use(
+  express.json(),
+  express.urlencoded({ extended: true })
 )
 
 app.use(
