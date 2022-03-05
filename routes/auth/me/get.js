@@ -7,7 +7,9 @@ export default (req, res) => {
 
   return res.status(200).json({
     user: {
-      username: decodedToken.username
+      username: decodedToken.username,
+      roleId: decodedToken.roleId,
+      userId: decodedToken.id      
     }
   })
 }

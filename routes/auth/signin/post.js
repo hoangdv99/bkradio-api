@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import knex from "../../../knexfile"
+import { camelize } from '../../../utils'
 
 export default async (req, res) => {
   const { username, password } = req.body
@@ -20,7 +21,9 @@ export default async (req, res) => {
     })
   }
 
-  const token = jwt.sign({ username }, process.env.ACCESS_TOKEN_SECRET, {
+  const { roleId, id } = camelize(user[0])
+
+  const token = jwt.sign({ username, roleId, id }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: '365d'
   })
 
