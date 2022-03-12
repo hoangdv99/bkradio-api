@@ -21,6 +21,7 @@ export default async (req, res) => {
     .leftJoin('authors as au', 'a.author_id', 'au.id')
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
     .leftJoin('users as u', 'a.posted_by', 'u.id')
+    .orderBy('a.created_at', 'desc')
   const audios = queryResult.reduce((audio, row) => {
     audio[row.id] = audio[row.id] || {
       ...row,
