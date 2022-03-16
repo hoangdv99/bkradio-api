@@ -1,4 +1,5 @@
 import knex from '../../knexfile'
+import { audioStatus } from '../../constants';
 import { camelize } from '../../utils';
 
 export default async (req, res) => {
@@ -21,6 +22,7 @@ export default async (req, res) => {
     .leftJoin('authors as au', 'a.author_id', 'au.id')
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
     .leftJoin('users as u', 'a.posted_by', 'u.id')
+    .where('a.status', '<>', audioStatus.deactived)
     .orderBy('a.created_at', 'desc')
   const audios = queryResult.reduce((audio, row) => {
     audio[row.id] = audio[row.id] || {
