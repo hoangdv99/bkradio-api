@@ -1,25 +1,21 @@
-import { verify } from "jsonwebtoken";
+import pkg from 'jsonwebtoken'
+const { verify } = pkg;
 
-export default (req, res, next) => {
-  const authHeader = req.get("Authorization");
-  if (!authHeader) {
-    const error = new Error("Not authenticated.");
-    error.statusCode = 401;
-    throw error;
+export const authMiddleware = (req, res, next) => {
+  const userToken = req.headers['x-access-token']
+  if (!userToken) {
+    return res.status(401).send('No token provided')
   }
-  const token = authHeader.split(" ")[1];
-  let decodedToken;
+  let decodedToken
   try {
-    decodedToken = verify(token, process.env.ACCESS_TOKEN_SECRET);
+    decodedToken = verify(userToken, process.env.ACCESS_TOKEN_SECRET)
+    req.user = decodedToken
   } catch (err) {
-    err.statusCode = 500;
-    throw err;
+    err.statusCode = 500
+    throw err
   }
   if (!decodedToken) {
-    const error = new Error("Not authenticated.");
-    error.statusCode = 401;
-    throw error;
+    return res.status(401).send('No token provided')
   }
-  req.userId = decodedToken.userId;
-  next();
-};
+  next()
+}

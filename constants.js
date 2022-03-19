@@ -3,3 +3,8 @@ export const audioStatus = {
   public: 1,
   private: 2,
 } 
+
+export const roles = {
+  admin: 1,
+  user: 2
+}

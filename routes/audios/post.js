@@ -1,7 +1,13 @@
+import { roles } from '../../constants'
 import knex from '../../knexfile'
 
 export default async (req, res) => {
   const { title, description, authorId, voiceId, thumbnailUrl, audioUrl, userId, topicIds } = req.body
+
+  const { roleId } = req.user
+  if (roleId !== roles.admin) {
+    return res.status(403).send('Permission denied')
+  }
 
   if (!title || !authorId || !voiceId || !audioUrl) {
     return res.status(422).send({

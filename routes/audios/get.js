@@ -40,3 +40,5 @@ export default async (req, res) => {
     Object.values(audios).map(audio => camelize(audio))
   )
 }
+
+export { authMiddleware }
