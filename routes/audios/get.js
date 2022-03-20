@@ -1,6 +1,7 @@
+import _ from 'lodash'
 import knex from '../../knexfile'
-import { audioStatus } from '../../constants';
-import { camelize } from '../../utils';
+import { audioStatus } from '../../constants'
+import { camelize } from '../../utils'
 
 export default async (req, res) => {
   const queryResult = await knex.select(
@@ -13,6 +14,8 @@ export default async (req, res) => {
     'a.views',
     'a.status',
     'a.author',
+    'a.created_at',
+    'a.updated_at',
     't.title as topic',
     'v.name as voice',
     'u.username as posted_by'
@@ -22,8 +25,7 @@ export default async (req, res) => {
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
     .leftJoin('users as u', 'a.posted_by', 'u.id')
     .where('a.status', '<>', audioStatus.deactived)
-    .orderBy('a.created_at', 'desc')
-  const audios = queryResult.reduce((audio, row) => {
+  let audios = queryResult.reduce((audio, row) => {
     audio[row.id] = audio[row.id] || {
       ...row,
       topics: []
@@ -34,6 +36,8 @@ export default async (req, res) => {
 
     return audio
   }, {})
+
+  audios = _.orderBy(audios, ['created_at'], ['desc'])
 
   return res.status(200).send(
     Object.values(audios).map(audio => camelize(audio))
