@@ -7,6 +7,7 @@ export default async (req, res) => {
   const queryResult = await knex.select(
     'a.id',
     'a.title',
+    'a.slug',
     'a.description',
     'a.url',
     'a.thumbnail_url',

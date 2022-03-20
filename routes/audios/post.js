@@ -1,3 +1,4 @@
+import slugify from 'slugify'
 import { roles } from '../../constants'
 import knex from '../../knexfile'
 
@@ -10,8 +11,11 @@ export default async (req, res) => {
     })
   }
 
+  const slug = slugify(title + ' ' + author, { lower: true, locale: 'vi' })
+
   const audio = {
     title,
+    slug,
     description,
     url: audioUrl,
     author: author,
@@ -22,11 +26,7 @@ export default async (req, res) => {
     views: 0
   }
 
-  const existedAudio = await knex('audios').where({
-    title: title,
-    author: author,
-    voice_id: voiceId
-  })
+  const existedAudio = await knex('audios').where({ slug })
 
   if (existedAudio.length) {
     return res.status(409).send({
