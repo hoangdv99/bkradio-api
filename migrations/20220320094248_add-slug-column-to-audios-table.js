@@ -3,7 +3,9 @@
  * @returns { Promise<void> }
  */
 export function up(knex) {
-  return knex.schema.raw('ALTER TABLE `audios` CHANGE `author_id` `author` VARCHAR(255)')
+  return knex.schema.alterTable('audios', table => {
+    table.string('slug', 255)
+  })
 }
 
 /**
@@ -11,5 +13,7 @@ export function up(knex) {
  * @returns { Promise<void> }
  */
 export function down(knex) {
-  return knex.schema.raw('ALTER TABLE `audios` CHANGE `author` `author_id` INTEGER')
+  return knex.schema.alterTable('audios', table => {
+    table.dropColumn('slug')
+  })
 }

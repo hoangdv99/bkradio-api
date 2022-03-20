@@ -8,7 +8,7 @@ export function up(knex) {
     table.string('title').notNullable()
     table.string('description')
     table.string('url').notNullable()
-    table.integer('author_id').notNullable()
+    table.string('author').notNullable()
     table.string('thumbnail_url')
     table.integer('posted_by').notNullable()
     table.integer('voice_id').notNullable()
