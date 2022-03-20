@@ -2,14 +2,9 @@ import { roles } from '../../constants'
 import knex from '../../knexfile'
 
 export default async (req, res) => {
-  const { title, description, authorId, voiceId, thumbnailUrl, audioUrl, userId, topicIds } = req.body
+  const { title, description, author, voiceId, thumbnailUrl, audioUrl, userId, topicIds } = req.body
 
-  const { roleId } = req.user
-  if (roleId !== roles.admin) {
-    return res.status(403).send('Permission denied')
-  }
-
-  if (!title || !authorId || !voiceId || !audioUrl) {
+  if (!title || !author || !voiceId || !audioUrl) {
     return res.status(422).send({
       message: 'Missing fields'
     })
@@ -19,7 +14,7 @@ export default async (req, res) => {
     title,
     description,
     url: audioUrl,
-    author_id: authorId,
+    author: author,
     thumbnail_url: thumbnailUrl,
     posted_by: userId,
     voice_id: voiceId,
@@ -29,7 +24,7 @@ export default async (req, res) => {
 
   const existedAudio = await knex('audios').where({
     title: title,
-    author_id: authorId,
+    author: author,
     voice_id: voiceId
   })
 
