@@ -10,7 +10,7 @@ export default async (req, res) => {
     })
   }
 
-  const slug = slugify(name, { locale: 'vi' })
+  const slug = slugify(name, { lower: true, locale: 'vi' })
 
   const existedName = await knex('voices').where('name', name)
   

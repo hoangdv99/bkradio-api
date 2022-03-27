@@ -12,8 +12,8 @@ export function up(knex) {
     table.string('thumbnail_url')
     table.integer('posted_by').notNullable()
     table.integer('voice_id').notNullable()
-    table.smallint('rating')
-    table.integer('views')
+    table.decimal('rating').defaultTo(0)
+    table.integer('views').defaultTo(0)
     table.smallint('status').defaultTo(1)
   }) 
 }
