@@ -3,6 +3,7 @@ import { camelize } from '../../../utils'
 
 export default async (req, res) => {
   const { slug } = req.params
+  const { userId } = req.query
 
   const audio = await getAudioBySlug(slug)
   if (!audio) {
@@ -10,6 +11,9 @@ export default async (req, res) => {
       message: 'Audio is not existed'
     })
   }
+
+  const { currentListeningTime } = userId ? camelize(await getListenHistory(userId, audio.id)) : null
+  audio.history = currentListeningTime
 
   return res.status(200).send(audio)
 }
@@ -32,9 +36,9 @@ const getAudioBySlug = async (slug) => {
     .leftJoin('topics as t', 'at.topic_id', 't.id')
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
     .where('a.slug', slug)
-  
+
   if (!queryResult.length) return null
-  
+
   let topics = []
   queryResult.forEach(row => {
     topics.push(row.topic)
@@ -46,3 +50,11 @@ const getAudioBySlug = async (slug) => {
   return camelize(audio)
 }
 
+const getListenHistory = async (userId, audioId) => {
+  const history = await knex.select('current_listening_time')
+    .from('histories')
+    .where({ user_id: userId, audio_id: audioId })
+    .first()
+
+  return history || {}
+}
