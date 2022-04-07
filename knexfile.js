@@ -5,7 +5,9 @@
  */
 import dotenv from 'dotenv'
 import knex from 'knex'
+import { attachPaginate } from 'knex-paginate'
 dotenv.config()
+attachPaginate()
 
 export default knex({
   client: 'mysql',
