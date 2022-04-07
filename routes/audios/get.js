@@ -4,6 +4,8 @@ import { audioStatus } from '../../constants'
 import { camelize } from '../../utils'
 
 export default async (req, res) => {
+  const { page, perPage, topic } = req.query
+
   const queryResult = await knex.select(
     'a.id',
     'a.title',
@@ -18,6 +20,7 @@ export default async (req, res) => {
     'a.created_at',
     'a.updated_at',
     't.title as topic',
+    't.slug as topicSlug',
     'v.name as voice',
     'u.username as posted_by'
     ).from('audios as a')
@@ -26,7 +29,11 @@ export default async (req, res) => {
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
     .leftJoin('users as u', 'a.posted_by', 'u.id')
     .where('a.status', '<>', audioStatus.deactived)
-  let audios = queryResult.reduce((audio, row) => {
+    .modify(function (queryBuilder) {
+      if (topic) queryBuilder.where('t.slug', '=', topic)
+    })
+    .paginate({ perPage: perPage, currentPage: page, isLengthAware: true })
+  let audios = queryResult.data.reduce((audio, row) => {
     audio[row.id] = audio[row.id] || {
       ...row,
       topics: []
@@ -40,7 +47,8 @@ export default async (req, res) => {
 
   audios = _.orderBy(audios, ['created_at'], ['desc'])
 
-  return res.status(200).send(
-    Object.values(audios).map(audio => camelize(audio))
-  )
+  return res.status(200).send({
+    audios: Object.values(audios).map(audio => camelize(audio)),
+    pagination: queryResult.pagination
+  })
 }
