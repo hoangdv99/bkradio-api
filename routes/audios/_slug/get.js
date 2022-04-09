@@ -15,6 +15,9 @@ export default async (req, res) => {
   const { currentListeningTime } = userId ? camelize(await getListenHistory(userId, audio.id)) : null
   audio.history = currentListeningTime
 
+  const ratingHistory = await getVotingHistory(audio.id, userId)
+  audio.ratingHistory = ratingHistory
+
   return res.status(200).send(audio)
 }
 
@@ -57,4 +60,23 @@ const getListenHistory = async (userId, audioId) => {
     .first()
 
   return history || {}
+}
+
+const getVotingHistory = async (audioId, userId) => {
+  let isRated = false
+  const ratingTimes = await knex('audio_user_ratings')
+    .count()
+    .where('audio_id', '=', audioId)
+    .first()
+  console.log(ratingTimes);
+  if (userId) {
+    const history = await knex.select('*')
+      .from('audio_user_ratings')
+      .where('audio_id', '=', audioId)
+      .where('user_id', '=', userId)
+      .first()
+    if (history) isRated = true
+  }
+
+  return { ratingTimes: ratingTimes['count(*)'], isRated }
 }
