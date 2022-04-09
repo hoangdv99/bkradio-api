@@ -4,13 +4,13 @@ export default async (req, res) => {
   const { audioId, userId, rating } = req.body
 
   if (!userId) {
-    return res.status(403)
+    return res.sendStatus(403)
   }
 
   await updateAudioEverageRating(audioId, rating)
   await updateRatingHistory(audioId, userId, rating)
 
-  return res.status(200)
+  return res.sendStatus(200)
 }
 
 const updateAudioEverageRating = async (audioId, rating) => {
