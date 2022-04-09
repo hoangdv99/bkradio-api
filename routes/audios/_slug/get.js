@@ -18,6 +18,9 @@ export default async (req, res) => {
   const ratingHistory = await getVotingHistory(audio.id, userId)
   audio.ratingHistory = ratingHistory
 
+  const relatedAudios = await getRelatedAudios(audio)
+  audio.relatedAudios = relatedAudios
+
   return res.status(200).send(audio)
 }
 
@@ -68,7 +71,6 @@ const getVotingHistory = async (audioId, userId) => {
     .count()
     .where('audio_id', '=', audioId)
     .first()
-  console.log(ratingTimes);
   if (userId) {
     const history = await knex.select('*')
       .from('audio_user_ratings')
@@ -79,4 +81,17 @@ const getVotingHistory = async (audioId, userId) => {
   }
 
   return { ratingTimes: ratingTimes['count(*)'], isRated }
+}
+
+const getRelatedAudios = async (audio) => {
+  const relatedAudios = await knex.select(
+    'id',
+    'title',
+    'slug',
+    'author',
+    'thumbnail_url'
+  ).from('audios')
+  .where('author', '=', audio.author)
+
+  return Object.values(relatedAudios).map(audio => camelize(audio))
 }
