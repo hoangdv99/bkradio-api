@@ -4,7 +4,7 @@ import { audioStatus } from '../../constants'
 import { camelize } from '../../utils'
 
 export default async (req, res) => {
-  const { page, perPage, topic } = req.query
+  const { page, perPage, topic, voice } = req.query
 
   const queryResult = await knex.select(
     'a.id',
@@ -31,6 +31,7 @@ export default async (req, res) => {
     .where('a.status', '<>', audioStatus.deactived)
     .modify(function (queryBuilder) {
       if (topic) queryBuilder.where('t.slug', '=', topic)
+      if (voice) queryBuilder.where('v.slug', '=', voice)
     })
     .paginate({ perPage: perPage, currentPage: page, isLengthAware: true })
   let audios = queryResult.data.reduce((audio, row) => {
