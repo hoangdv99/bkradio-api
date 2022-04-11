@@ -4,6 +4,7 @@ import cors from 'cors'
 import statuses from 'statuses'
 import promiseRouter from 'express-promise-router'
 const nnnRouter = (await import('nnn-router')).default
+import { authMiddleware } from './middlewares/isAuth'
 
 express.response.sendStatus = function(statusCode) {
   const body = { message: statuses[statusCode] || String(statusCode) }
@@ -37,6 +38,8 @@ app.use(
     return next()
   }
 )
+
+app.use(authMiddleware)
 
 app.use(
   nnnRouter({ routeDir: '/routes', baseRouter: promiseRouter() }),
