@@ -23,9 +23,9 @@ export default async (req, res) => {
 
   const { roleId, id } = camelize(user[0])
 
-  const token = jwt.sign({ username, roleId, id }, process.env.ACCESS_TOKEN_SECRET, {
+  const accessToken = jwt.sign({ username, roleId, id }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: '365d'
   })
 
-  return res.status(200).json({ token })
+  return res.status(200).json({ accessToken })
 }

@@ -21,6 +21,7 @@
     "module-alias": "^2.2.2",
     "mysql": "^2.18.1",
     "nnn-router": "^1.1.5",
+    "node-mocks-http": "^1.11.0",
     "slugify": "^1.6.5",
     "statuses": "^2.0.1",
     "to-case": "^2.0.0"

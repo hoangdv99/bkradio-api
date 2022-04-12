@@ -3,7 +3,7 @@ import { camelize } from '../../../utils'
 
 export default async (req, res) => {
   const { slug } = req.params
-  const { userId } = req.query
+  const userId = req.user ? req.user.id : null
 
   const audio = await getAudioBySlug(slug)
   if (!audio) {
@@ -12,16 +12,16 @@ export default async (req, res) => {
     })
   }
 
-  const { currentListeningTime } = userId ? camelize(await getListenHistory(userId, audio.id)) : null
-  audio.history = currentListeningTime
-
+  const { currentListeningTime = null } = camelize(await getListenHistory(userId, audio.id))
   const ratingHistory = await getVotingHistory(audio.id, userId)
-  audio.ratingHistory = ratingHistory
-
   const relatedAudios = await getRelatedAudios(audio)
-  audio.relatedAudios = relatedAudios
 
-  return res.status(200).send(audio)
+  return res.status(200).send({
+    ...audio,
+    history: currentListeningTime,
+    ratingHistory,
+    relatedAudios
+  })
 }
 
 const getAudioBySlug = async (slug) => {
