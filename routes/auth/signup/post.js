@@ -15,7 +15,7 @@ export default async (req, res) => {
   const user = await knex('users').insert({
     username,
     password: hashedPassword,
-    role_id: 1,
+    role_id: 2,
     status: 1
   })
 
