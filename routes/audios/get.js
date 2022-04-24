@@ -4,7 +4,7 @@ import { audioStatus } from '../../constants'
 import { camelize } from '../../utils'
 
 export default async (req, res) => {
-  const { page, perPage, topic, voice } = req.query
+  const { page, perPage, topic, voice, searchKeyword } = req.query
 
   const queryResult = await knex.select(
     'a.id',
@@ -23,7 +23,7 @@ export default async (req, res) => {
     't.slug as topicSlug',
     'v.name as voice',
     'u.username as posted_by'
-    ).from('audios as a')
+  ).from('audios as a')
     .leftJoin('audio_topic as at', 'a.id', 'at.audio_id')
     .leftJoin('topics as t', 'at.topic_id', 't.id')
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
@@ -32,6 +32,7 @@ export default async (req, res) => {
     .modify(function (queryBuilder) {
       if (topic) queryBuilder.where('t.slug', '=', topic)
       if (voice) queryBuilder.where('v.slug', '=', voice)
+      if (searchKeyword) queryBuilder.whereRaw(`concat(a.author, ' ', a.title) like '%${searchKeyword}%'`)
     })
     .paginate({ perPage: perPage, currentPage: page, isLengthAware: true })
   let audios = queryResult.data.reduce((audio, row) => {
@@ -39,7 +40,7 @@ export default async (req, res) => {
       ...row,
       topics: []
     };
-  
+
     audio[row.id].topics.push(row.topic)
     delete audio[row.id].topic
 
