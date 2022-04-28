@@ -1,5 +1,5 @@
-import knex from '../../../knexfile.js'
-import { camelize } from '../../../utils'
+import knex from '../../../../knexfile'
+import { camelize } from '../../../../utils'
 
 export default async (req, res) => {
   const { slug } = req.params
