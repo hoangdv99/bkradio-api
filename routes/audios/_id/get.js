@@ -15,7 +15,7 @@ export default async (req, res) => {
 }
 
 const getAudioById = async (id) => {
-  const audio = await knex('audios').where('id', id).first()
+  const audio = await knex('audios').where('id', '=', id).first()
   if (!audio) return null
   const topicIds = (await knex('audio_topic').where('audio_id', id)).map(topic => topic.topic_id)
   audio.topicIds = topicIds
