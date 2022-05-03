@@ -2,6 +2,12 @@ import knex from '../../knexfile'
 import slugify from 'slugify'
 
 export default async (req, res) => {
+  if (req.user.roleId !== roles.admin) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+  
   const { name } = req.body
   const slug = slugify(name, { locale: 'vi' })
 
