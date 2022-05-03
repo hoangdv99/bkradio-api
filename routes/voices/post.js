@@ -2,6 +2,11 @@ import knex from '../../knexfile'
 import slugify from 'slugify'
 
 export default async (req, res) => {
+  if (req.user.roleId !== roles.admin) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
   const { name, gender } = req.body
 
   if (!name || !gender) {

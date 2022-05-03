@@ -4,6 +4,12 @@ import knex from '../../knexfile'
 
 export default async (req, res) => {
   const { title, description, author, voiceId, thumbnailUrl, audioUrl, userId, topicIds } = req.body
+  
+  if (req.user.roleId !== roles.admin) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   if (!title || !author || !voiceId || !audioUrl) {
     return res.status(422).send({

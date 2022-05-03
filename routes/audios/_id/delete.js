@@ -2,6 +2,12 @@ import knex from '../../../knexfile.js'
 import { audioStatus } from '../../../constants.js'
 
 export default async (req, res) => {
+  if (req.user.roleId !== roles.admin) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+  
   const { id } = req.params
   const audio = await knex('audios').where({ id })
 

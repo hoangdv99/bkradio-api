@@ -2,6 +2,11 @@ import knex from '../../../knexfile.js'
 import { toSnakeCase } from "../../../utils"
 
 export default async (req, res) => {
+  if (req.user.roleId !== roles.admin) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
   const { id, topic_ids, ...formattedAudio} = toSnakeCase(req.body)
   formattedAudio.updated_at = knex.fn.now()
   await knex.transaction(async trx => {
