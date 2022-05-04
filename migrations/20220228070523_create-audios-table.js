@@ -10,11 +10,15 @@ export function up(knex) {
     table.string('url').notNullable()
     table.string('author').notNullable()
     table.string('thumbnail_url')
-    table.integer('posted_by').notNullable()
-    table.integer('voice_id').notNullable()
+    table.integer('posted_by').unsigned().notNullable().references('id').inTable('users').onDelete('CASCADE')
+    table.integer('voice_id').unsigned().notNullable().references('id').inTable('voices').onDelete('CASCADE')
     table.decimal('rating').defaultTo(0)
     table.integer('views').defaultTo(0)
     table.smallint('status').defaultTo(1)
+    table.string('slug', 255)
+    table.integer('rating_count').defaultTo(0)
+    table.smallint('type').defaultTo(1).comment('1: Truyen ngan, 2: Truyen dai, 3: Sach noi, 4: Podcast')
+    table.timestamps(true, true)
   }) 
 }
 

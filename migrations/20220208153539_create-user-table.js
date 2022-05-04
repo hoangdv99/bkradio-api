@@ -9,8 +9,9 @@ export function up(knex) {
     table.string('username').notNullable()
     table.string('password').notNullable()
     table.string('avatar')
-    table.string('email')
+    table.string('email').notNullable()
     table.string('status').notNullable()
+    table.timestamps(true, true)
   })
 }
 
