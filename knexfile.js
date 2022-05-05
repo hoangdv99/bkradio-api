@@ -26,6 +26,8 @@ export default knex({
   }
 })
 
+// Use when run migrate
+
 // const config = {
 //   client: 'mysql',
 //   connection: {
