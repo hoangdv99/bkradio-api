@@ -1,5 +1,6 @@
 import knex from '../../knexfile'
 import slugify from 'slugify'
+import { roles } from '../../constants'
 
 export default async (req, res) => {
   if (req.user.roleId !== roles.admin) {
