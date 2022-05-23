@@ -1,10 +1,10 @@
 import _ from 'lodash'
 import knex from '../../knexfile'
-import { audioStatus } from '../../constants'
+import { audioStatus, audioTypes } from '../../constants'
 import { camelize } from '../../utils'
 
 export default async (req, res) => {
-  const { page, perPage, topic, voice, searchKeyword } = req.query
+  const { page, perPage, topic, voice, searchKeyword, type } = req.query
 
   const queryResult = await knex.select(
     'a.id',
@@ -32,6 +32,7 @@ export default async (req, res) => {
     .modify(function (queryBuilder) {
       if (topic) queryBuilder.where('t.slug', '=', topic)
       if (voice) queryBuilder.where('v.slug', '=', voice)
+      if (type) queryBuilder.where('a.type', '=', getTypeIdBySlug(type))
       if (searchKeyword) queryBuilder.whereRaw(`concat(a.author, ' ', a.title) like '%${searchKeyword}%'`)
     })
     .paginate({ perPage: perPage, currentPage: page, isLengthAware: true })
@@ -53,4 +54,9 @@ export default async (req, res) => {
     audios: Object.values(audios).map(audio => camelize(audio)),
     pagination: queryResult.pagination
   })
+}
+
+const getTypeIdBySlug = (slug) => {
+  const type = audioTypes.find(e => e.slug === slug)
+  return type.id
 }
