@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import knex from '../../knexfile'
 import { audioStatus, audioTypes } from '../../constants'
 import { camelize } from '../../utils'
@@ -35,6 +34,7 @@ export default async (req, res) => {
       if (type) queryBuilder.where('a.type', '=', getTypeIdBySlug(type))
       if (searchKeyword) queryBuilder.whereRaw(`concat(a.author, ' ', a.title) like '%${searchKeyword}%'`)
     })
+    .orderBy('a.created_at', 'desc')
     .paginate({ perPage: perPage, currentPage: page, isLengthAware: true })
   let audios = queryResult.data.reduce((audio, row) => {
     audio[row.id] = audio[row.id] || {
@@ -47,8 +47,6 @@ export default async (req, res) => {
 
     return audio
   }, {})
-
-  audios = _.orderBy(audios, ['created_at'], ['desc'])
 
   return res.status(200).send({
     audios: Object.values(audios).map(audio => camelize(audio)),
