@@ -17,7 +17,7 @@ export default async (req, res) => {
       audio_id: audioId,
       user_id: userId,
       current_listening_time: time,
-      listened_percent: (time / audioLength) * 100,
+      listened_percent: audioLength ? (time / audioLength) * 100 : 0,
       created_at: knex.fn.now(),
       updated_at: knex.fn.now(),
     })
