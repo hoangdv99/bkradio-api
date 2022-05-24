@@ -4,6 +4,7 @@ import { camelize } from '../../../../utils'
 export default async (req, res) => {
   const { slug } = req.params
   const userId = req.user ? req.user.id : null
+  const RELATED_AUDIOS_AMOUNT = 12
 
   const audio = await getAudioBySlug(slug)
   if (!audio) {
@@ -14,7 +15,11 @@ export default async (req, res) => {
 
   const { currentListeningTime = null } = camelize(await getListenHistory(userId, audio.id))
   const ratingHistory = await getVotingHistory(audio.id, userId)
-  const relatedAudios = await getRelatedAudios(audio)
+  let relatedAudios = await getRelatedAudios(audio)
+  if (relatedAudios.length < RELATED_AUDIOS_AMOUNT) {
+    const randoms = await getRandomAudios(RELATED_AUDIOS_AMOUNT - relatedAudios.length)
+    relatedAudios = [...relatedAudios, ...randoms]
+  }
 
   return res.status(200).send({
     ...audio,
@@ -92,6 +97,23 @@ const getRelatedAudios = async (audio) => {
     'thumbnail_url'
   ).from('audios')
   .where('author', '=', audio.author)
+  .where('id', '<>', audio.id)
+  .orderByRaw('RAND()')
+  .limit(9)
 
   return Object.values(relatedAudios).map(audio => camelize(audio))
+}
+
+const getRandomAudios = async (limit) => {
+  const audios = await knex.select(
+    'id',
+    'title',
+    'slug',
+    'author',
+    'thumbnail_url'
+  ).from('audios')
+  .orderByRaw('RAND()')
+  .limit(limit)
+
+  return Object.values(audios).map(audio => camelize(audio))
 }
