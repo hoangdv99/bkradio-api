@@ -2,29 +2,42 @@ import knex from "../../knexfile"
 
 export default async (req, res) => {
   const { audioId, userId, content, isReply, parentCommentId } = req.body
+  let result
   if (isReply) {
-    await saveReply(audioId, userId, content, parentCommentId)
+    result = await saveReply(audioId, userId, content, parentCommentId)
   } else {
-    await saveComment(audioId, userId, content)
+    result = await saveComment(audioId, userId, content)
   }
 
-  return res.sendStatus(200)
+  return res.status(200).send(result)
 }
 
 const saveComment = async (audioId, userId, content) => {
-  await knex('comments').insert({
+  const id = await knex('comments').insert({
     'audio_id': audioId,
     'user_id': userId,
     'content': content,
   })
+
+  return knex.select('c.*', 'u.username')
+    .from('comments as c')
+    .leftJoin('users as u', 'c.user_id', 'u.id')
+    .where('c.id', '=', id)
+    .first()
 }
 
 const saveReply = async (audioId, userId, content, parentCommentId) => {
-  await knex('comments').insert({
+  const id = await knex('comments').insert({
     'audio_id': audioId,
     'user_id': userId,
     'content': content,
     'is_reply': 1,
     'parent_comment_id': parentCommentId
   })
+
+  return knex.select('c.*', 'u.username')
+    .from('comments as c')
+    .leftJoin('users as u', 'c.user_id', 'u.id')
+    .where('c.id', '=', id)
+    .first()
 }
