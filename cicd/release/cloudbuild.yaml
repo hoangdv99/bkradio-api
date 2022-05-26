@@ -1,0 +1,51 @@
+steps:
+  # run from the start
+  # this will decrypt the encrypted file and secret
+  - id: 'prepare-secret'
+    name: 'gcr.io/cloud-builders/gcloud'
+    waitFor: ['-']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest --project=${PROJECT_ID} --secret=${_ENV}-${_SECRET_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env
+  # run from the start
+  # this creates simplified version of package.json
+  - id: 'prepare-package.json'
+    name: gcr.io/azoom-x/jq
+    waitFor: ['-']
+    entrypoint: /bin/sh
+    args:
+      - -c
+      - jq '{ dependencies, devDependencies }' < package.json > package.deps.json
+  # this builds app docker image
+  - id: 'build-app-image'
+    name: 'gcr.io/kaniko-project/executor:latest'
+    waitFor: ['prepare-package.json']
+    args:
+      - --dockerfile=${_APP_DOCKER_FILE}
+      - --destination=gcr.io/${PROJECT_ID}/${_ENV}-${_CLOUD_RUN_SERVICE_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/${_ENV}-${_CLOUD_RUN_SERVICE_NAME}:$TAG_NAME
+      - --cache=true
+      - --cache-ttl=336h
+
+  # deploy container image to Cloud Run
+  - id: 'deploy-app'
+    name: 'gcr.io/cloud-builders/gcloud'
+    waitFor: ['build-app-image']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud run deploy ${_ENV}-${_CLOUD_RUN_SERVICE_NAME} \
+          --image gcr.io/$PROJECT_ID/${_ENV}-${_CLOUD_RUN_SERVICE_NAME}:$TAG_NAME \
+          --allow-unauthenticated \
+          --region asia-northeast1 \
+          --platform managed \
+          --timeout 900 \
+# Combine with substitution variables from cloud build trigger
+substitutions:
+  _ENV: staging
+  _SECRET_NAME: bkradio-api
+  _APP_DOCKER_FILE: ./cicd/release/Dockerfile
+  _CLOUD_RUN_SERVICE_NAME: bkradio-api
