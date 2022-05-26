@@ -5,7 +5,10 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --experimental-modules --es-module-specifier-resolution=node index.js"
+    "dev": "nodemon --experimental-modules --es-module-specifier-resolution=node index.js",
+    "start": "node --experimental-modules --es-module-specifier-resolution=node index.js",
+    "deploy:delete-staging-tag": "git fetch --tags && git push origin --delete $(git tag -l 'staging-*') || true && git fetch origin --prune 'refs/tags/*:refs/tags/*'",
+    "staging:deploy": "yarn deploy:delete-staging-tag && TAG=`echo staging-$(date +%Y%m%d-%H%M%S)` && git tag $TAG && git push origin $TAG"
   },
   "dependencies": {
     "aws-sdk": "^2.1073.0",
