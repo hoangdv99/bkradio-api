@@ -1,5 +1,6 @@
 import knex from '../../../../knexfile'
 import { camelize } from '../../../../utils'
+import { audioStatus } from '../../../../constants'
 
 export default async (req, res) => {
   const { slug } = req.params
@@ -47,6 +48,7 @@ const getAudioBySlug = async (slug) => {
     .leftJoin('topics as t', 'at.topic_id', 't.id')
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
     .where('a.slug', slug)
+    .where('a.status', '=', audioStatus.public)
 
   if (!queryResult.length) return null
 
