@@ -1,5 +1,7 @@
+import slugify from 'slugify'
 import knex from '../../../knexfile.js'
 import { toSnakeCase } from "../../../utils"
+import { roles } from '../../../constants'
 
 export default async (req, res) => {
   if (req.user.roleId !== roles.admin) {
@@ -7,7 +9,24 @@ export default async (req, res) => {
       message: 'Forbidden'
     })
   }
+
+  const { title, voiceId, author } = req.body
+  if (!title) {
+    return res.status(422).send({
+      message: 'Missing fields'
+    })
+  }
+
+  const slug = slugify(title + ' ' + author, { lower: true, locale: 'vi' })
+  const existedAudio = await knex('audios').where({ slug }).first()
+  if (existedAudio) {
+    return res.status(409).send({
+      message: 'Duplicated audio'
+    })
+  }
+
   const { id, topic_ids, ...formattedAudio} = toSnakeCase(req.body)
+
   formattedAudio.updated_at = knex.fn.now()
   await knex.transaction(async trx => {
     await knex('audios').transacting(trx).where({ id }).update(formattedAudio)

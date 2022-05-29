@@ -3,7 +3,7 @@ import { roles } from '../../constants'
 import knex from '../../knexfile'
 
 export default async (req, res) => {
-  const { title, description, author, voiceId, thumbnailUrl, audioUrl, userId, topicIds } = req.body
+  const { title, description, author, voiceId, thumbnailUrl, audioUrl, userId, topicIds, type } = req.body
   
   if (req.user.roleId !== roles.admin) {
     return res.status(403).send({
@@ -11,7 +11,7 @@ export default async (req, res) => {
     })
   }
 
-  if (!title || !author || !voiceId || !audioUrl) {
+  if (!title || !author || !audioUrl) {
     return res.status(422).send({
       message: 'Missing fields'
     })
@@ -29,7 +29,8 @@ export default async (req, res) => {
     posted_by: userId,
     voice_id: voiceId,
     rating: 0,
-    views: 0
+    views: 0,
+    type
   }
 
   const existedAudio = await knex('audios').where({ slug })

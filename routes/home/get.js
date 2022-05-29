@@ -40,6 +40,7 @@ const getAudiosByType = async () => {
     )
       .from('audios')
       .where({ type: type.id })
+      .where({ status: audioStatus.public })
       .orderBy('created_at', 'desc')
       .limit(12)
     audiosByTypes.push({

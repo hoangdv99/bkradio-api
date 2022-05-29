@@ -3,7 +3,7 @@ import { audioStatus, audioTypes } from '../../constants'
 import { camelize } from '../../utils'
 
 export default async (req, res) => {
-  const { page, perPage, topic, voice, searchKeyword, type } = req.query
+  const { page, perPage, topic, voice, searchKeyword, type, allViewMode } = req.query
 
   const queryResult = await knex.select(
     'a.id',
@@ -27,12 +27,13 @@ export default async (req, res) => {
     .leftJoin('topics as t', 'at.topic_id', 't.id')
     .leftJoin('voices as v', 'a.voice_id', 'v.id')
     .leftJoin('users as u', 'a.posted_by', 'u.id')
-    .where('a.status', '<>', audioStatus.deactived)
     .modify(function (queryBuilder) {
       if (topic) queryBuilder.where('t.slug', '=', topic)
       if (voice) queryBuilder.where('v.slug', '=', voice)
       if (type) queryBuilder.where('a.type', '=', getTypeIdBySlug(type))
       if (searchKeyword) queryBuilder.whereRaw(`concat(a.author, ' ', a.title) like '%${searchKeyword}%'`)
+      if (allViewMode) queryBuilder.where('a.status', '<>', audioStatus.deactived)
+      if (!allViewMode) queryBuilder.where('a.status', '=', audioStatus.public)
     })
     .orderBy('a.created_at', 'desc')
     .paginate({ perPage: perPage, currentPage: page, isLengthAware: true })
