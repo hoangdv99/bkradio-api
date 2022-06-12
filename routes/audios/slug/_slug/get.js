@@ -54,7 +54,7 @@ const getAudioBySlug = async (slug) => {
 
   let topics = []
   queryResult.forEach(row => {
-    topics.push(row.topic)
+    if (row.topic) topics.push(row.topic)
     delete row.topic
   })
 
