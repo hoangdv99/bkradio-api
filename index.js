@@ -5,6 +5,7 @@ import statuses from 'statuses'
 import promiseRouter from 'express-promise-router'
 const nnnRouter = (await import('nnn-router')).default
 import { authMiddleware } from './middlewares/isAuth'
+import { fileUploadMiddleware } from './middlewares/file-upload'
 
 express.response.sendStatus = function(statusCode) {
   const body = { message: statuses[statusCode] || String(statusCode) }
@@ -40,6 +41,7 @@ app.use(
 )
 
 app.use(authMiddleware)
+app.use(fileUploadMiddleware)
 
 app.use(
   nnnRouter({ routeDir: '/routes', baseRouter: promiseRouter() }),
