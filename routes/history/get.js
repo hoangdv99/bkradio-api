@@ -1,5 +1,6 @@
 import knex from "../../knexfile"
 import { camelize } from '../../utils'
+import { audioStatus, audioTypes } from '../../constants'
 
 export default async (req, res) => {
   const userId = req.query.userId
@@ -16,6 +17,7 @@ export default async (req, res) => {
     .from('histories as h')
     .leftJoin('audios as a', 'h.audio_id', 'a.id')
     .where('h.user_id', '=', userId)
+    .where('a.status', '<>', audioStatus.deactived)
     .orderBy('h.updated_at', 'desc')
     .limit(5)
 
