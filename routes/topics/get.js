@@ -1,9 +1,10 @@
 import knex from '../../knexfile'
+import { camelize } from '../../utils'
 
 export default async (req, res) => {
   const topics = await knex('topics')
   
   return res.status(200).send(
-    topics.map(topic => Object.assign({}, topic)) 
+    Object.values(topics).map(topic => camelize(topic)),
   ) 
 }

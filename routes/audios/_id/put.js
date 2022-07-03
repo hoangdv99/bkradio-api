@@ -17,13 +17,13 @@ export default async (req, res) => {
     })
   }
 
-  const slug = slugify(title + ' ' + author, { lower: true, locale: 'vi' })
-  const existedAudio = await knex('audios').where({ slug }).first()
-  if (existedAudio) {
-    return res.status(409).send({
-      message: 'Duplicated audio'
-    })
-  }
+  // const slug = slugify(title + ' ' + author, { lower: true, locale: 'vi' })
+  // const existedAudio = await knex('audios').where({ slug }).first()
+  // if (existedAudio) {
+  //   return res.status(409).send({
+  //     message: 'Duplicated audio'
+  //   })
+  // }
 
   const { id, topic_ids, ...formattedAudio} = toSnakeCase(req.body)
 
