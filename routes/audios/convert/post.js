@@ -4,7 +4,18 @@ import axios from "axios";
 import got from 'got'
 import { storage } from '../../../storage'
 import getVoice from '../../voices/_id/get'
+import createNewAudio from '../post'
 import { execute } from '../../../utils'
+import kue from 'kue'
+
+const queue = kue.createQueue({
+  prefix: 'q',
+  redis: {
+    port: process.env.REDIS_PORT,
+    host: process.env.REDIS_HOST,
+    auth: process.env.REDIS_PASSWORD,
+  }
+})
 
 export default async (req, res) => {
   const { buffer, originalname } = req.files[0];
@@ -12,46 +23,71 @@ export default async (req, res) => {
   const content = await PDF(buffer);
   const chunks = splitString(5000, content.text);
   const { voiceId } = req.body
+  req.body.topicIds = req.body.topicIds.split(',')
 
   const result = await execute(getVoice, { params: { id: voiceId } })
   const { ttsValue } = result.res
 
+  queue.create('convert-queue', {
+    chunks,
+    originalName,
+    ttsValue,
+    audio: req.body
+  }).save()
+
+  return res.sendStatus(200)
+}
+
+queue.process('convert-queue', (job, done) => {
+  const { chunks, originalName, ttsValue, audio } = job.data
+  convert(chunks, originalName, ttsValue, audio, done)
+})
+
+const convert = async (chunks, originalName, ttsValue, audio, done) => {
   try {
     const convertedLinks = []
     for (let i = 0; i < chunks.length; i++) {
-    const convertedLink = await convertTextToAudio(chunks[i], ttsValue)
+      const convertedLink = await convertTextToAudio(chunks[i], ttsValue)
       convertedLinks.push(convertedLink)
+      await new Promise(resolve => setTimeout(resolve, 10000));
     }
 
     for (let i = 0; i < convertedLinks.length; i++) {
       await downloadConvertedAudio(originalName, convertedLinks[i])
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
     }
     const dir = `./downloads/${originalName}`
     const files = fs.readdirSync(dir)
     const writeStream = fs.createWriteStream(`${dir}/${originalName}-final.mp3`)
-    const readerStreams = files.map(file => fs.createReadStream(`${dir}/${file}`))
-    for (let i = 0; i < readerStreams.length; i++) {
-      readerStreams[i].pipe(writeStream).on('finish', async () => {
-        if (i === readerStreams.length - 1) {
-          const url = await uploadToStorage(originalName)
-          fs.rmSync(dir, { recursive: true, force: true });
-          res.send({ url })
-        }
-      })
-    }
+    await recursiveStreamWriter(files, originalName, writeStream, audio, done)
+    done()
   } catch (err) {
     console.log(err)
-    return res.status(400).send({
-      message: 'Có lỗi xảy ra'
-    })
   }
-};
+}
+
+const recursiveStreamWriter = async (files, originalName, writeStream, audio) => {
+  if (files.length === 0) {
+    const url = await uploadToStorage(originalName)
+    if (url) {
+      audio.audioUrl = url
+      fs.rmSync(`./downloads/${originalName}`, { recursive: true, force: true })
+      await execute(createNewAudio, { body: audio, user: { roleId: 1 } })
+    }
+    return
+  }
+  let nextFile = files.shift()
+  const readStream = fs.createReadStream(`./downloads/${originalName}/${nextFile}`)
+  readStream.pipe(writeStream, {end: false})
+  readStream.on('end', async () => {
+    return await recursiveStreamWriter(files, originalName, writeStream, audio)
+  })
+}
 
 const convertTextToAudio = async (text, voice = "banmai") => {
   const response = await axios.post("https://api.fpt.ai/hmi/tts/v5", text, {
     headers: {
-      api_key: "KwIL1U3R5cv6Q52r0XK6rxIvw6LmLWYI",
+      api_key: process.env.FPT_TTS_KEY,
       voice: voice,
     },
   });
