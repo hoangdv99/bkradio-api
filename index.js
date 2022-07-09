@@ -6,6 +6,7 @@ import promiseRouter from 'express-promise-router'
 const nnnRouter = (await import('nnn-router')).default
 import { authMiddleware } from './middlewares/isAuth'
 import { fileUploadMiddleware } from './middlewares/file-upload'
+import kue from 'kue'
 
 express.response.sendStatus = function(statusCode) {
   const body = { message: statuses[statusCode] || String(statusCode) }
@@ -51,6 +52,8 @@ app.use(
     return res.sendStatus(500)
   }
 )
+
+app.use('/kue-api/', kue.app)
 
 const port = process.env.PORT || 5000
 const host = process.env.HOST || 'localhost'

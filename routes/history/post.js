@@ -4,7 +4,7 @@ export default async (req, res) => {
   const { audioId, userId, time, audioLength } = req.body
 
   if (!userId) {
-    return res.sendStatus(403)
+    return res.sendStatus(200)
   }
 
   const existedLog = await knex.select('*')
