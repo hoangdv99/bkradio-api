@@ -88,6 +88,7 @@ const convert = async (chunks, originalName, voices, audio, email, done) => {
     console.log(err)
     fs.rmSync(`./downloads`, { recursive: true, force: true })
     done()
+    sendMail(email, originalName, '')
   }
 }
 
@@ -102,6 +103,7 @@ const insertNewAudio = async (originalName, audio, email) => {
     sendMail(email, originalName, slug)
   } catch (err) {
     sendMail(email, originalName, slug)
+    throw err
   }
 }
 
@@ -133,14 +135,18 @@ const recursiveStreamWriter = async (
 }
 
 const convertTextToAudio = async (text, voice) => {
-  const response = await axios.post('https://api.fpt.ai/hmi/tts/v5', text, {
-    headers: {
-      api_key: process.env.FPT_TTS_KEY,
-      voice: voice,
-    },
-  })
+  try {
+    const response = await axios.post('https://api.fpt.ai/hmi/tts/v5', text, {
+      headers: {
+        api_key: process.env.FPT_TTS_KEY,
+        voice: voice,
+      },
+    })
 
-  return response.data.async
+    return response.data.async
+  } catch (error) {
+    throw error
+  }
 }
 
 const downloadConvertedAudio = async (originalName, link, ttsValue) => {
@@ -151,23 +157,36 @@ const downloadConvertedAudio = async (originalName, link, ttsValue) => {
   const filename = `${dir}/${originalName}-${new Date().valueOf()}.mp3`
   const file = fs.createWriteStream(filename)
   await new Promise((resolve) => setTimeout(resolve, 5000))
-  const res = await axios({
-    method: 'get',
-    url: link,
-    responseType: 'stream',
-  })
+  let res,
+    retries = 100
+  do {
+    await new Promise((resolve) => setTimeout(resolve, 30000))
+    retries--
+    try {
+      res = await axios({
+        method: 'get',
+        url: link,
+        responseType: 'stream',
+      })
+    } catch (err) {}
+  } while ((!res || res.status !== 200) && retries > 0)
+
   return res.data.pipe(file)
 }
 
 const uploadToStorage = async (originalName, ttsValue) => {
-  const filename = `${originalName}-${new Date().valueOf()}.mp3`
-  const storageFilePath = `audio/${filename}`
-  const localFilePath = `./downloads/${originalName}-${ttsValue}/${originalName}-${ttsValue}-final.mp3`
-  const file = await storage.bucket().upload(localFilePath, {
-    destination: storageFilePath,
-  })
-  const res = file.find((item) => item.hasOwnProperty('mediaLink'))
-  return res.mediaLink
+  try {
+    const filename = `${originalName}-${new Date().valueOf()}.mp3`
+    const storageFilePath = `audio/${filename}`
+    const localFilePath = `./downloads/${originalName}-${ttsValue}/${originalName}-${ttsValue}-final.mp3`
+    const file = await storage.bucket().upload(localFilePath, {
+      destination: storageFilePath,
+    })
+    const res = file.find((item) => item.hasOwnProperty('mediaLink'))
+    return res.mediaLink
+  } catch (error) {
+    throw error
+  }
 }
 
 const splitString = (n, str) => {
