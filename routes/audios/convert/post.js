@@ -86,6 +86,8 @@ const convert = async (chunks, originalName, voices, audio, email, done) => {
     done()
   } catch (err) {
     console.log(err)
+    fs.rmSync(`./downloads`, { recursive: true, force: true })
+    done()
   }
 }
 
