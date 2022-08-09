@@ -3,7 +3,7 @@ import { roles } from '../../constants'
 import knex from '../../knexfile'
 
 export default async (req, res) => {
-  const { title, description, author, voiceId, thumbnailUrl, audioUrl, userId, topicIds, type } = req.body
+  const { title, description, author, links, thumbnailUrl, userId, topicIds, type } = req.body
   
   if (req.user.roleId !== roles.admin) {
     return res.status(403).send({
@@ -11,7 +11,7 @@ export default async (req, res) => {
     })
   }
 
-  if (!title || !author || !audioUrl) {
+  if (!title || !author || !links.length) {
     return res.status(422).send({
       message: 'Missing fields'
     })
@@ -23,11 +23,9 @@ export default async (req, res) => {
     title,
     slug,
     description,
-    url: audioUrl,
     author: author,
     thumbnail_url: thumbnailUrl,
     posted_by: userId,
-    voice_id: voiceId,
     rating: 0,
     views: 0,
     type
@@ -41,9 +39,19 @@ export default async (req, res) => {
     })
   }
 
-  const audioId = await knex('audios').insert(audio)
-  topicIds.forEach(async topicId => {
-    await knex('audio_topic').insert({ 'topic_id': topicId, 'audio_id': audioId[0] })
+  await knex.transaction(async trx => {
+    const audioId = await knex('audios').insert(audio)
+    const insertLinks = links.map(link => ({
+      audio_id: audioId,
+      voice_id: link.voiceId,
+      link: link.link
+    }))
+    const insertTopics = topicIds.map(topicId => ({
+      topic_id: topicId,
+      audio_id: audioId
+    }))
+    await knex('audio_links').transacting(trx).insert(insertLinks)
+    await knex('audio_topic').transacting(trx).insert(insertTopics)
   })
 
   return res.status(200).send({
