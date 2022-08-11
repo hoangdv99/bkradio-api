@@ -25,7 +25,7 @@ export default async (req, res) => {
   //   })
   // }
 
-  const { id, topic_ids, ...formattedAudio} = toSnakeCase(req.body)
+  const { id, topic_ids, links, created_at, ...formattedAudio} = toSnakeCase(req.body)
 
   formattedAudio.updated_at = knex.fn.now()
   await knex.transaction(async trx => {
